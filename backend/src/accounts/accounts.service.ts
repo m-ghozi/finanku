@@ -7,16 +7,19 @@ export class AccountsService {
   constructor(private prisma: PrismaService) {}
 
   async findAll(userId: string, includeArchived = false) {
-    return this.prisma.account.findMany({
+    const accounts = await this.prisma.account.findMany({
       where: { userId, ...(includeArchived ? {} : { isArchived: false }) },
       orderBy: { createdAt: 'asc' },
     });
+    return Promise.all(
+      accounts.map(async (a) => ({ ...a, currentBalance: await this.computeBalance(a) })),
+    );
   }
 
   async findOne(userId: string, id: string) {
     const account = await this.prisma.account.findFirst({ where: { id, userId } });
     if (!account) throw new NotFoundException('Rekening tidak ditemukan');
-    return account;
+    return { ...account, currentBalance: await this.computeBalance(account) };
   }
 
   async create(userId: string, dto: CreateAccountDto) {
@@ -41,23 +44,25 @@ export class AccountsService {
   }
 
   /** currentBalance = openingBalance + income - expense + transferIn - transferOut */
-  async computeCurrentBalance(userId: string, accountId: string): Promise<number> {
-    const account = await this.findOne(userId, accountId);
+  private async computeBalance(account: {
+    id: string;
+    openingBalance: number;
+  }): Promise<number> {
     const [income, expense, transferIn, transferOut] = await Promise.all([
       this.prisma.transaction.aggregate({
-        where: { accountId, type: 'income', status: 'completed' },
+        where: { accountId: account.id, type: 'income', status: 'completed' },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { accountId, type: 'expense', status: 'completed' },
+        where: { accountId: account.id, type: 'expense', status: 'completed' },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { toAccountId: accountId, type: 'transfer', status: 'completed' },
+        where: { toAccountId: account.id, type: 'transfer', status: 'completed' },
         _sum: { amount: true },
       }),
       this.prisma.transaction.aggregate({
-        where: { accountId, type: 'transfer', status: 'completed' },
+        where: { accountId: account.id, type: 'transfer', status: 'completed' },
         _sum: { amount: true },
       }),
     ]);

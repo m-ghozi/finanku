@@ -97,19 +97,19 @@ npm install
 ```
 
 ### 3. Konfigurasi Lingkungan (`.env`)
-Salin file `.env.example` menjadi `.env.local`:
+Salin file `.env.example` menjadi `.env`:
 ```env
-# Aktifkan mock API in-memory (tanpa backend)
-VITE_USE_MOCK_API=true
-VITE_API_URL=http://localhost:3001
-
-# Kompatibilitas Next.js alias
-NEXT_PUBLIC_USE_MOCK_API=true
-NEXT_PUBLIC_API_URL=http://localhost:3001
+# URL backend NestJS (wajib menyertakan prefiks /api/v1)
+VITE_API_URL=http://localhost:3001/api/v1
 ```
 
-### 4. Jalankan Server Dev
+### 4. Jalankan Backend & Frontend
 ```bash
+# Terminal 1 — API NestJS (butuh PostgreSQL; atur backend/.env dari backend/.env.example)
+npm run prisma:migrate -w backend
+npm run dev:api
+
+# Terminal 2 — Frontend Vite
 npm run dev
 ```
 Buka browser pada alamat `http://localhost:3000`.
@@ -121,17 +121,11 @@ npm run build
 
 ---
 
-## Arsitektur & Transisi ke Backend NestJS
+## Arsitektur & Integrasi Backend NestJS
 
-Frontend ini menerapkan layer API terpusat (`src/lib/api/`) dengan DTO dan tipe TypeScript lengkap.
+Frontend ini menerapkan layer API terpusat (`src/lib/api/`) dengan DTO dan tipe TypeScript lengkap. Tidak ada mode mock — seluruh data dibaca dan ditulis melalui REST API backend NestJS (`backend/`).
 
-Saat backend NestJS siap dihubungkan:
-1. Ubah konfigurasi `.env`:
-   ```env
-   VITE_USE_MOCK_API=false
-   VITE_API_URL=https://api.fintrack.app/api/v1
-   ```
-2. Seluruh komponen UI, validasi form, dan hook TanStack Query akan langsung mengonsumsi endpoint REST API backend tanpa perlu mengubah kode komponen.
+Konfigurasi hanya memerlukan `VITE_API_URL` yang mengarah ke API. Autentikasi menggunakan Bearer JWT; sesi kedaluwarsa (401) otomatis mengembalikan pengguna ke halaman login.
 
 Dokumentasi spesifikasi lengkap dapat dilihat pada:
 - [`docs/api-contract.md`](./docs/api-contract.md)

@@ -1,65 +1,67 @@
-import { USE_MOCK_API, apiClient } from './client';
-import { User, LoginCredentials, AuthResponse } from '@/src/types/auth';
-
-const MOCK_USER: User = {
-  id: 'usr_01',
-  name: 'Budi Santoso',
-  email: 'budi.santoso@fintrack.id',
-  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=128&auto=format&fit=crop&q=80',
-  role: 'user',
-  createdAt: '2026-01-01T00:00:00Z',
-};
+import { apiClient } from './client';
+import { User, LoginCredentials, RegisterCredentials, AuthResponse } from '@/src/types/auth';
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const res = USE_MOCK_API
-      ? await (async () => {
-          await new Promise((r) => setTimeout(r, 400));
-          return {
-            user: { ...MOCK_USER, email: credentials.email },
-            token: 'mock_jwt_token_' + Date.now(),
-            expiresIn: 86400,
-          } as AuthResponse;
-        })()
-      : await apiClient<AuthResponse>('/auth/login', {
-          method: 'POST',
-          body: JSON.stringify(credentials),
-        });
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('fintrack_token', res.token);
-      localStorage.setItem('fintrack_user', JSON.stringify(res.user));
-    }
-    return res;
+    // /auth/login responds with the standard envelope: { success, data: AuthResponse }
+    const res = await apiClient<{ data: AuthResponse }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+    persistSession(res.data);
+    return res.data;
+  },
+
+  async register(credentials: RegisterCredentials): Promise<AuthResponse> {
+    const res = await apiClient<{ data: AuthResponse }>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+    persistSession(res.data);
+    return res.data;
   },
 
   async logout(): Promise<void> {
-    if (USE_MOCK_API) {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('fintrack_token');
-        localStorage.removeItem('fintrack_user');
-      }
-      return;
+    try {
+      await apiClient('/auth/logout', { method: 'POST' });
+    } catch {
+      // Token may already be invalid — clearing locally is enough.
     }
-    await apiClient('/auth/logout', { method: 'POST' });
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('fintrack_token');
-      localStorage.removeItem('fintrack_user');
-    }
+    clearSession();
   },
 
   async getCurrentUser(): Promise<User | null> {
-    if (USE_MOCK_API) {
-      if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('fintrack_user');
-        if (stored) return JSON.parse(stored);
-      }
-      return MOCK_USER;
-    }
     try {
       const res = await apiClient<{ data: User }>('/auth/me');
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('fintrack_user', JSON.stringify(res.data));
+      }
       return res.data;
     } catch {
       return null;
     }
   },
+
+  async updateProfile(dto: { name?: string; email?: string }): Promise<User> {
+    const res = await apiClient<{ data: User }>('/auth/me', {
+      method: 'PATCH',
+      body: JSON.stringify(dto),
+    });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('fintrack_user', JSON.stringify(res.data));
+    }
+    return res.data;
+  },
 };
+
+function persistSession(res: AuthResponse) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('fintrack_token', res.token);
+  localStorage.setItem('fintrack_user', JSON.stringify(res.user));
+}
+
+function clearSession() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('fintrack_token');
+  localStorage.removeItem('fintrack_user');
+}

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { authService } from '@/src/lib/api/auth';
-import { LoginCredentials, User } from '@/src/types/auth';
+import { LoginCredentials, RegisterCredentials, User } from '@/src/types/auth';
 
 export const AUTH_QUERY_KEY = ['currentUser'];
 
@@ -19,6 +19,27 @@ export function useLogin() {
     onSuccess: (data) => {
       queryClient.setQueryData(AUTH_QUERY_KEY, data.user);
       queryClient.invalidateQueries();
+    },
+  });
+}
+
+export function useRegister() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (credentials: RegisterCredentials) => authService.register(credentials),
+    onSuccess: (data) => {
+      queryClient.setQueryData(AUTH_QUERY_KEY, data.user);
+      queryClient.invalidateQueries();
+    },
+  });
+}
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: { name?: string; email?: string }) => authService.updateProfile(dto),
+    onSuccess: (user: User) => {
+      queryClient.setQueryData(AUTH_QUERY_KEY, user);
     },
   });
 }

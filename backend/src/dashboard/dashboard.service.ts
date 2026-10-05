@@ -1,26 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccountsService } from '../accounts/accounts.service';
+import { RecurringService } from '../recurring/recurring.service';
 
 @Injectable()
 export class DashboardService {
   constructor(
     private prisma: PrismaService,
     private accounts: AccountsService,
+    private recurring: RecurringService,
   ) {}
 
   async getDashboard(userId: string) {
+    // Execute due recurring schedules first so aggregates are fresh.
+    await this.recurring.runDue(userId);
+
     const now = new Date();
     const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
     const nextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
 
-    const [accounts, monthAggRaw, expenseByCategoryRows, budgets, savingGoals, upcomingRecurrings, upcomingDebts, recent] =
+    const [accounts, expenseByCategoryRows, budgets, savingGoals, upcomingRecurrings, upcomingDebts, recent] =
       await Promise.all([
         this.accounts.findAll(userId),
-        this.prisma.transaction.aggregate({
-          where: { userId, status: 'completed', date: { gte: monthStart, lt: nextMonth } },
-          _sum: { amount: true },
-        }),
         this.prisma.transaction.groupBy({
           by: ['categoryId'],
           where: {
@@ -62,7 +63,6 @@ export class DashboardService {
           },
         }),
       ]);
-    void monthAggRaw;
 
     // totalBalance = sum of currentBalance across non-credit-card accounts
     const totalBalance = accounts
@@ -157,10 +157,10 @@ export class DashboardService {
         .map((d) => ({
           id: d.id,
           type: d.type === 'debt' ? ('debt_due' as const) : ('receivable_due' as const),
-          title: `${d.type === 'debt' ? 'Hutang ke' : 'Piutang dari'} ${d.name}`,
-          amount: d.principalAmount - d.paidAmount,
+          title: `${d.type === 'debt' ? 'Hutang ke' : 'Piutang dari'} ${d.personName}`,
+          amount: d.remainingAmount,
           dueDate: d.dueDate as Date,
-          subtitle: d.notes || 'Jatuh tempo',
+          subtitle: d.description || 'Jatuh tempo',
           isExpense: d.type === 'debt',
         })),
     ]

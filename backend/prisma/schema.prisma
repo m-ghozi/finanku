@@ -34,6 +34,7 @@ enum CategoryType {
 }
 
 enum Frequency {
+  daily
   weekly
   monthly
   yearly
@@ -46,6 +47,7 @@ enum DebtType {
 
 enum DebtStatus {
   active
+  partially_paid
   paid
   overdue
 }
@@ -68,6 +70,7 @@ model User {
   debts                Debt[]
   debtPayments         DebtPayment[]
   recurrings           Recurring[]
+  notifications        Notification[]
 }
 
 model Account {
@@ -175,8 +178,11 @@ model SavingGoal {
   targetAmount  Int
   currentAmount Int       @default(0)
   targetDate    DateTime? @db.Date
+  category      String?
   color         String    @default("#059669")
   icon          String    @default("piggy-bank")
+  notes         String?
+  isArchived    Boolean   @default(false)
   isCompleted   Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -192,8 +198,8 @@ model SavingsContribution {
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   savingGoalId String
   savingGoal   SavingGoal @relation(fields: [savingGoalId], references: [id], onDelete: Cascade)
-  accountId    String
-  account      Account    @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  accountId    String?
+  account      Account?   @relation(fields: [accountId], references: [id], onDelete: SetNull)
   amount       Int
   date         DateTime   @db.Date
   notes        String?
@@ -207,12 +213,13 @@ model Debt {
   userId          String
   user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   type            DebtType
-  name            String
-  principalAmount Int
-  paidAmount      Int        @default(0)
+  personName      String
+  totalAmount     Int
+  remainingAmount Int
+  startDate       DateTime   @db.Date
   dueDate         DateTime?  @db.Date
   status          DebtStatus @default(active)
-  notes           String?
+  description     String?
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
@@ -227,8 +234,8 @@ model DebtPayment {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   debtId    String
   debt      Debt     @relation(fields: [debtId], references: [id], onDelete: Cascade)
-  accountId String
-  account   Account  @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  accountId String?
+  account   Account? @relation(fields: [accountId], references: [id], onDelete: SetNull)
   amount    Int
   date      DateTime @db.Date
   notes     String?
@@ -260,4 +267,18 @@ model Recurring {
   updatedAt   DateTime        @updatedAt
 
   @@index([userId, isActive])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
 }

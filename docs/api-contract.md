@@ -7,7 +7,7 @@ Seluruh interaksi frontend mengacu pada spesifikasi ini.
 
 ## 1. Konvensi Umum
 
-- **Base URL**: `/api/v1` (atau konfigurasi `VITE_API_URL` / `NEXT_PUBLIC_API_URL`)
+- **Base URL**: `/api/v1` (dikonfigurasi lewat `VITE_API_URL`)
 - **Format Pertukaran Data**: `application/json`
 - **Mata Uang**: Nominal moneter dikirimkan dalam integer (Rupiah tanpa desimal, misal: `12500000`).
 - **Tanggal & Waktu**: Format ISO 8601 (`YYYY-MM-DD` untuk tanggal murni, `YYYY-MM-DDTHH:mm:ss.sssZ` untuk timestamp).
@@ -97,6 +97,17 @@ Seluruh interaksi frontend mengacu pada spesifikasi ini.
 ### GET `/auth/me`
 - **Tujuan**: Mengambil data profil pengguna yang sedang login.
 - **Auth**: Bearer Token
+
+### PATCH `/auth/me`
+- **Tujuan**: Memperbarui profil pengguna (nama / email).
+- **Auth**: Bearer Token
+- **Request Body**:
+  ```json
+  {
+    "name": "Budi Santoso",
+    "email": "budi@fintrack.id"
+  }
+  ```
 - **Response 200**:
   ```json
   {
@@ -291,7 +302,28 @@ Seluruh interaksi frontend mengacu pada spesifikasi ini.
 
 ## 7. Tabungan / Saving Goals (`/savings`)
 
-### GET `/savings` & POST `/savings`
+### GET `/savings`
+- **Query Params**: `includeArchived=true|false` (default `false`)
+- Mengembalikan daftar target tabungan beserta `contributions` (setoran) terbaru.
+
+### GET `/savings/:id`
+### POST `/savings`
+- **Request Body**:
+  ```json
+  {
+    "name": "Dana Darurat",
+    "targetAmount": 10000000,
+    "currentAmount": 0,
+    "targetDate": "2027-01-01",
+    "category": "Keamanan Finansial",
+    "color": "#059669",
+    "icon": "shield-check",
+    "notes": "Disimpan di deposito"
+  }
+  ```
+### PATCH `/savings/:id`
+- Menerima sebagian field POST ditambah `isArchived`.
+### DELETE `/savings/:id`
 ### POST `/savings/:id/contributions`
 - **Request Body**:
   ```json
@@ -302,13 +334,36 @@ Seluruh interaksi frontend mengacu pada spesifikasi ini.
     "notes": "Tabungan bulanan"
   }
   ```
+- Efek: menambah `currentAmount` (otomatis `isCompleted` saat mencapai target) dan —
+  bila `accountId` diisi — mencatat transaksi pengeluaran agar saldo rekening ikut
+  berkurang.
 
 ---
 
 ## 8. Hutang & Piutang (`/debts`)
 
-### GET `/debts` & POST `/debts`
-- **Query Params**: `type=debt|receivable`, `status=active|paid|overdue`
+### GET `/debts`
+- **Query Params**: `type=debt|receivable`, `status=active|partially_paid|paid|overdue`
+- Field kontrak: `personName`, `totalAmount`, `remainingAmount`, `startDate`,
+  `dueDate`, `status`, `description`, `payments[]`.
+- `status` dihitung otomatis: `partially_paid` bila sudah ada cicilan, `overdue`
+  bila melewati `dueDate` dan belum lunas, `paid` bila sisa 0.
+
+### GET `/debts/:id`
+### POST `/debts`
+- **Request Body**:
+  ```json
+  {
+    "type": "debt",
+    "personName": "Andi Pratama",
+    "totalAmount": 1000000,
+    "dueDate": "2026-10-20",
+    "startDate": "2026-09-20",
+    "description": "Pinjaman tiket pesawat"
+  }
+  ```
+### PATCH `/debts/:id`
+### DELETE `/debts/:id`
 ### POST `/debts/:id/payments`
 - **Request Body**:
   ```json
@@ -319,12 +374,19 @@ Seluruh interaksi frontend mengacu pada spesifikasi ini.
     "notes": "Cicilan ke-1"
   }
   ```
+- Efek: mengurangi `remainingAmount`, memperbarui `status`, dan — bila `accountId`
+  diisi — mencatat transaksi (pengeluaran untuk hutang, pemasukan untuk piutang).
 
 ---
 
 ## 9. Recurring Transactions (`/recurring`)
 
-### GET `/recurring` & POST `/recurring`
+### GET `/recurring`
+- Sebelum mengembalikan daftar, server menjalankan jadwal yang sudah jatuh tempo
+  (catch-up) sehingga transaksi otomatis ikut tercatat.
+- Setiap item menyertakan `nextExecutionDate` dan `accountName`/`categoryName`.
+
+### POST `/recurring`
 - **Request Body**:
   ```json
   {
@@ -335,9 +397,25 @@ Seluruh interaksi frontend mengacu pada spesifikasi ini.
     "dayOfMonth": 1,
     "startDate": "2026-01-01",
     "accountId": "acc_01",
-    "categoryId": "cat_bills"
+    "categoryId": "cat_bills",
+    "notes": "Autodebet tanggal 1"
   }
   ```
+- `frequency`: `daily | weekly | monthly | yearly`.
+
+### PATCH `/recurring/:id` & DELETE `/recurring/:id`
+
+---
+
+## 11. Notifikasi (`/notifications`)
+
+### GET `/notifications`
+- Mengembalikan notifikasi terkini (maks 50). Server menyegarkan notifikasi
+  turunan (peringatan anggaran ≥ 80%, jatuh tempo hutang/piutang ≤ 7 hari,
+  transaksi berulang ≤ 3 hari) sebelum mengembalikan daftar.
+
+### PATCH `/notifications/:id/read`
+### POST `/notifications/read-all`
 
 ---
 
@@ -354,8 +432,11 @@ Seluruh interaksi frontend mengacu pada spesifikasi ini.
   - `recentTransactions` (5-10 transaksi terakhir)
 
 ### GET `/reports/summary`
-- Mengembalikan rincian per periode (Bulan ini, 3 Bulan, 6 Bulan, 1 Tahun, Custom):
-  - Perbandingan Income vs Expense
-  - Breakdown Kategori
-  - Trend Arus Kas
-  - Kalkulasi Net Worth (Aset - Liabilitas)
+- **Query Params**: `period=this_month|3_months|6_months|this_year|custom`
+  (+ `startDate`/`endDate` untuk `custom`).
+- Mengembalikan: `totalIncome`, `totalExpense`, `netCashFlow`, `savingsRate`,
+  `cashFlowHistory` (harian bila rentang ≤ 62 hari, selain itu bulanan),
+  `expenseByCategory`, `incomeByCategory`, dan `netWorth`
+  (`totalAssets`, `totalLiabilities`, `netWorth`, `assetsBreakdown`,
+  `liabilitiesBreakdown`). Aset mencakup saldo rekening non-kartu-kredit dan
+  piutang; liabilitas mencakup kartu kredit dan hutang yang belum lunas.

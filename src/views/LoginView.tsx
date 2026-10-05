@@ -7,7 +7,7 @@ import { Input } from '@/src/components/ui/input';
 import { ShieldCheck, LogIn, Lock, Mail } from 'lucide-react';
 
 export const LoginView: React.FC = () => {
-  const [email, setEmail] = useState('user@finanku.id');
+  const [email, setEmail] = useState('user@fintrack.id');
   const [password, setPassword] = useState('password123');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -40,7 +40,7 @@ export const LoginView: React.FC = () => {
             F
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
-            Finanku
+            Fintrack
           </h1>
           <p className="text-xs text-zinc-500">
             Aplikasi Pengelolaan Keuangan Pribadi
@@ -108,7 +108,7 @@ export const LoginView: React.FC = () => {
         {/* Demo credentials hint */}
         <div className="p-3 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 text-[11px] text-zinc-500 text-center">
           <p className="font-semibold text-zinc-700 dark:text-zinc-300 mb-0.5">Mode Demo Stand-Alone</p>
-          <p>Kredensial otomatis terisi: <strong>user@finanku.id</strong> / <strong>password123</strong></p>
+          <p>Kredensial otomatis terisi: <strong>user@fintrack.id</strong> / <strong>password123</strong></p>
         </div>
       </div>
     </div>

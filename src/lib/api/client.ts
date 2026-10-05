@@ -37,7 +37,7 @@ export async function apiClient<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('finanku_token') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('fintrack_token') : null;
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',

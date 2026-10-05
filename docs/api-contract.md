@@ -1,6 +1,6 @@
 # API CONTRACT — PERSONAL FINANCIAL TRACKER
 
-Dokumen ini mendefinisikan seluruh kontrak API antara Frontend Finanku dan Backend (NestJS).
+Dokumen ini mendefinisikan seluruh kontrak API antara Frontend Fintrack dan Backend (NestJS).
 Seluruh interaksi frontend mengacu pada spesifikasi ini.
 
 ---
@@ -61,7 +61,7 @@ Seluruh interaksi frontend mengacu pada spesifikasi ini.
 - **Request Body**:
   ```json
   {
-    "email": "user@finanku.id",
+    "email": "user@fintrack.id",
     "password": "password123"
   }
   ```
@@ -73,7 +73,7 @@ Seluruh interaksi frontend mengacu pada spesifikasi ini.
       "user": {
         "id": "usr_01",
         "name": "Budi Santoso",
-        "email": "user@finanku.id",
+        "email": "user@fintrack.id",
         "role": "user",
         "createdAt": "2026-01-01T00:00:00Z"
       },
@@ -104,7 +104,7 @@ Seluruh interaksi frontend mengacu pada spesifikasi ini.
     "data": {
       "id": "usr_01",
       "name": "Budi Santoso",
-      "email": "user@finanku.id",
+      "email": "user@fintrack.id",
       "role": "user",
       "createdAt": "2026-01-01T00:00:00Z"
     }

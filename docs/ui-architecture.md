@@ -1,7 +1,7 @@
-# UI Architecture & Design System — Finanku
+# UI Architecture & Design System — Fintrack
 
 ## 1. Filosofi Desain
-Finanku mengusung estetika minimalis finansial modern:
+Fintrack mengusung estetika minimalis finansial modern:
 - **Tone & Palette**: Netral monokromatik (Zinc/Slate) dengan aksen hijau emerald (`emerald-600`) sebagai warna identitas finansial.
 - **Semantic Feedback**:
   - Pemasukan (Income) / Laba: `text-emerald-600 dark:text-emerald-400`, `bg-emerald-50 dark:bg-emerald-950/30`
@@ -12,7 +12,7 @@ Finanku mengusung estetika minimalis finansial modern:
 
 ## 2. Privacy Mode (Hide Balance)
 Sesuai kebutuhan privasi pengguna di ruang publik:
-- Global state `isBalanceHidden` disimpan di `localStorage` (`finanku_hide_balance`).
+- Global state `isBalanceHidden` disimpan di `localStorage` (`fintrack_hide_balance`).
 - Komponen terpusat `<MoneyDisplay />` merender `Rp ••••••••` ketika mode aktif.
 - Tombol toggle mata terlihat di top bar / header untuk akses satu sentuhan.
 

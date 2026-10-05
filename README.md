@@ -1,6 +1,6 @@
-# Finanku — Personal Financial Tracker Frontend
+# Fintrack — Personal Financial Tracker Frontend
 
-Finanku adalah aplikasi frontend modern, minimalis, dan berbasis data untuk pengelolaan keuangan pribadi (Personal Financial Tracker). Dibangun dengan fokus pada kejelasan data, responsivitas tinggi (desktop & mobile-first), serta kepatuhan standar Progressive Web App (PWA).
+Fintrack adalah aplikasi frontend modern, minimalis, dan berbasis data untuk pengelolaan keuangan pribadi (Personal Financial Tracker). Dibangun dengan fokus pada kejelasan data, responsivitas tinggi (desktop & mobile-first), serta kepatuhan standar Progressive Web App (PWA).
 
 Aplikasi ini menggunakan **Bahasa Indonesia** dan mata uang **Rupiah (IDR)** sebagai standar utama.
 
@@ -129,7 +129,7 @@ Saat backend NestJS siap dihubungkan:
 1. Ubah konfigurasi `.env`:
    ```env
    VITE_USE_MOCK_API=false
-   VITE_API_URL=https://api.finanku.app/api/v1
+   VITE_API_URL=https://api.fintrack.app/api/v1
    ```
 2. Seluruh komponen UI, validasi form, dan hook TanStack Query akan langsung mengonsumsi endpoint REST API backend tanpa perlu mengubah kode komponen.
 

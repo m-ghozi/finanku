@@ -1,8 +1,8 @@
-# Arsitektur Frontend — Finanku Personal Financial Tracker
+# Arsitektur Frontend — Fintrack Personal Financial Tracker
 
 ## 1. Prinsip Desain & Batasan Tanggung Jawab
 
-Aplikasi Finanku dirancang mengikuti prinsip Clean Architecture pada layer Frontend:
+Aplikasi Fintrack dirancang mengikuti prinsip Clean Architecture pada layer Frontend:
 
 ### Tanggung Jawab Frontend:
 - Menghadirkan antarmuka pengguna yang minimalis, modern, dan intuitif.

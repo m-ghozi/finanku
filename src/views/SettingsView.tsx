@@ -18,7 +18,7 @@ export const SettingsView: React.FC = () => {
 
   // Profile Form state
   const [name, setName] = useState(user?.name || 'Budi Santoso');
-  const [email, setEmail] = useState(user?.email || 'user@finanku.id');
+  const [email, setEmail] = useState(user?.email || 'user@fintrack.id');
   const [savedMessage, setSavedMessage] = useState('');
 
   // Preference state
@@ -200,7 +200,7 @@ export const SettingsView: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-base font-semibold">Aplikasi Web Progresif (PWA)</CardTitle>
-          <p className="text-xs text-zinc-500">Pasang Finanku sebagai aplikasi native di perangkat Anda</p>
+          <p className="text-xs text-zinc-500">Pasang Fintrack sebagai aplikasi native di perangkat Anda</p>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">

@@ -7,7 +7,7 @@ import { Debt } from '@/src/types/debt';
 import { RecurringTransaction } from '@/src/types/recurring';
 import { AppNotification } from '@/src/types/notification';
 
-const STORAGE_PREFIX = 'finanku_mock_';
+const STORAGE_PREFIX = 'fintrack_mock_';
 
 function loadFromStorage<T>(key: string, defaultValue: T): T {
   if (typeof window === 'undefined') return defaultValue;

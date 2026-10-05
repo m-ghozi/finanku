@@ -14,8 +14,8 @@ export default defineConfig(() => {
         includeAssets: ['favicon.png', 'apple-touch-icon.png', 'icon.svg'],
         manifest: {
           id: '/',
-          name: 'Finanku - Personal Financial Tracker',
-          short_name: 'Finanku',
+          name: 'Fintrack - Personal Financial Tracker',
+          short_name: 'Fintrack',
           description: 'Aplikasi pengelolaan keuangan pribadi modern dengan pelacakan transaksi, anggaran, rekening, tabungan, dan laporan finansial.',
           theme_color: '#059669',
           background_color: '#09090b',

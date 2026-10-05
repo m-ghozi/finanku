@@ -30,7 +30,7 @@ export const NotificationsView: React.FC = () => {
         const result = await Notification.requestPermission();
         setPermission(result);
         if (result === 'granted') {
-          new Notification('Finanku', {
+          new Notification('Fintrack', {
             body: 'Notifikasi browser berhasil diaktifkan!',
             icon: '/icon.svg',
           });

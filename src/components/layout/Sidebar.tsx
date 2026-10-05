@@ -79,7 +79,7 @@ export const Sidebar: React.FC = () => {
           </div>
           <div>
             <span className="font-bold text-base tracking-tight text-zinc-950 dark:text-zinc-50 block leading-tight">
-              Finanku
+              Fintrack
             </span>
             <span className="text-[10px] uppercase font-semibold text-emerald-600 dark:text-emerald-400 tracking-wider">
               Personal Finance

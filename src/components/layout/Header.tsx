@@ -51,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
       case '/settings':
         return 'Pengaturan';
       default:
-        return 'Finanku';
+        return 'Fintrack';
     }
   };
 
@@ -153,7 +153,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <div className="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
                 <p className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">{user?.name || 'Pengguna'}</p>
-                <p className="text-zinc-500 text-[11px] truncate">{user?.email || 'user@finanku.id'}</p>
+                <p className="text-zinc-500 text-[11px] truncate">{user?.email || 'user@fintrack.id'}</p>
               </div>
               <button
                 onClick={() => {

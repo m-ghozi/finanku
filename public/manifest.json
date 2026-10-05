@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Finanku - Personal Financial Tracker",
-  "short_name": "Finanku",
+  "name": "Fintrack - Personal Financial Tracker",
+  "short_name": "Fintrack",
   "description": "Aplikasi pengelolaan keuangan pribadi modern dengan pelacakan transaksi, anggaran, rekening, tabungan, dan laporan finansial.",
   "start_url": "/",
   "scope": "/",

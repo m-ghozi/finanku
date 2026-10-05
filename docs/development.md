@@ -1,6 +1,6 @@
 # Panduan Pengembangan (Development Guide)
 
-## 1. Menjalankan Finanku
+## 1. Menjalankan Fintrack
 
 ### Prasyarat
 - Node.js versi 18+ (atau Bun / NPM)
@@ -36,7 +36,7 @@ VITE_API_URL=http://localhost:3001
 ### Mode Backend (Terhubung ke NestJS)
 ```env
 VITE_USE_MOCK_API=false
-VITE_API_URL=https://api.finanku.app
+VITE_API_URL=https://api.fintrack.app
 ```
 
 ---

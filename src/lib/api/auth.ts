@@ -4,7 +4,7 @@ import { User, LoginCredentials, AuthResponse } from '@/src/types/auth';
 const MOCK_USER: User = {
   id: 'usr_01',
   name: 'Budi Santoso',
-  email: 'budi.santoso@finanku.id',
+  email: 'budi.santoso@fintrack.id',
   avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=128&auto=format&fit=crop&q=80',
   role: 'user',
   createdAt: '2026-01-01T00:00:00Z',
@@ -20,8 +20,8 @@ export const authService = {
         expiresIn: 86400,
       };
       if (typeof window !== 'undefined') {
-        localStorage.setItem('finanku_token', res.token);
-        localStorage.setItem('finanku_user', JSON.stringify(res.user));
+        localStorage.setItem('fintrack_token', res.token);
+        localStorage.setItem('fintrack_user', JSON.stringify(res.user));
       }
       return res;
     }
@@ -34,22 +34,22 @@ export const authService = {
   async logout(): Promise<void> {
     if (USE_MOCK_API) {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('finanku_token');
-        localStorage.removeItem('finanku_user');
+        localStorage.removeItem('fintrack_token');
+        localStorage.removeItem('fintrack_user');
       }
       return;
     }
     await apiClient('/auth/logout', { method: 'POST' });
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('finanku_token');
-      localStorage.removeItem('finanku_user');
+      localStorage.removeItem('fintrack_token');
+      localStorage.removeItem('fintrack_user');
     }
   },
 
   async getCurrentUser(): Promise<User | null> {
     if (USE_MOCK_API) {
       if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('finanku_user');
+        const stored = localStorage.getItem('fintrack_user');
         if (stored) return JSON.parse(stored);
       }
       return MOCK_USER;

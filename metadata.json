@@ -1,0 +1,6 @@
+{
+  "name": "Finanku - Personal Financial Tracker",
+  "description": "Aplikasi pengelolaan keuangan pribadi modern dengan pelacakan transaksi, anggaran, rekening, tabungan, hutang, dan laporan finansial.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -12,7 +12,11 @@ export class EnvelopeInterceptor implements NestInterceptor {
           return { success: true, data: null };
         }
         // Pagination responses already carry their own {data, meta} shape.
-        if (typeof data === 'object' && 'data' in data && 'meta' in data) {
+        if (
+          typeof data === 'object' &&
+          'data' in data &&
+          ('meta' in data || (data as { data?: unknown }).data instanceof Array)
+        ) {
           return { success: true, ...data };
         }
         return { success: true, data };

@@ -12,23 +12,24 @@ const MOCK_USER: User = {
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    if (USE_MOCK_API) {
-      await new Promise((r) => setTimeout(r, 400));
-      const res: AuthResponse = {
-        user: { ...MOCK_USER, email: credentials.email },
-        token: 'mock_jwt_token_' + Date.now(),
-        expiresIn: 86400,
-      };
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('fintrack_token', res.token);
-        localStorage.setItem('fintrack_user', JSON.stringify(res.user));
-      }
-      return res;
+    const res = USE_MOCK_API
+      ? await (async () => {
+          await new Promise((r) => setTimeout(r, 400));
+          return {
+            user: { ...MOCK_USER, email: credentials.email },
+            token: 'mock_jwt_token_' + Date.now(),
+            expiresIn: 86400,
+          } as AuthResponse;
+        })()
+      : await apiClient<AuthResponse>('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify(credentials),
+        });
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('fintrack_token', res.token);
+      localStorage.setItem('fintrack_user', JSON.stringify(res.user));
     }
-    return apiClient<AuthResponse>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    });
+    return res;
   },
 
   async logout(): Promise<void> {

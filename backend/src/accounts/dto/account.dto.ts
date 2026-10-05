@@ -15,8 +15,8 @@ export class CreateAccountDto {
   @MaxLength(100)
   name: string;
 
-  @IsEnum(['bank', 'cash', 'e_wallet', 'credit_card'])
-  type: 'bank' | 'cash' | 'e_wallet' | 'credit_card';
+  @IsEnum(['cash', 'bank', 'ewallet', 'credit_card', 'investment', 'other'])
+  type: 'cash' | 'bank' | 'ewallet' | 'credit_card' | 'investment' | 'other';
 
   @IsOptional()
   @IsString()

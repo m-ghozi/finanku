@@ -5,11 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
+    "dev:api": "npm run dev -w backend",
     "build": "vite build",
+    "build:api": "npm run build -w backend",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit && npm run lint -w backend"
   },
+  "workspaces": [
+    "backend"
+  ],
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
     "@tailwindcss/vite": "^4.3.3",
@@ -33,5 +38,10 @@
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite-plugin-pwa": "^2.0.0"
+  },
+  "allowScripts": {
+    "@prisma/engines@6.19.3": true,
+    "bcrypt@6.0.0": true,
+    "prisma@6.19.3": true
   }
 }

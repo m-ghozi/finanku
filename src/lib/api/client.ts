@@ -1,22 +1,10 @@
 /**
  * Centralized API Client
- * Seamlessly toggles between Mock In-Memory API and Real Backend API
+ * Talks to the NestJS backend at VITE_API_URL.
  */
 
-export const USE_MOCK_API = (() => {
-  // Vite env vars
-  const viteMock = import.meta.env.VITE_USE_MOCK_API;
-  const nextMock = (import.meta.env as Record<string, string | undefined>).NEXT_PUBLIC_USE_MOCK_API;
-
-  if (viteMock !== undefined) return String(viteMock) === 'true';
-  if (nextMock !== undefined) return String(nextMock) === 'true';
-  return true; // Default to mock mode for full standalone preview
-})();
-
 export const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env as Record<string, string | undefined>).NEXT_PUBLIC_API_URL ||
-  'http://localhost:3001/api/v1';
+  import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
 
 export class ApiError extends Error {
   statusCode: number;
@@ -30,8 +18,15 @@ export class ApiError extends Error {
   }
 }
 
+function clearSession() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('fintrack_token');
+  localStorage.removeItem('fintrack_user');
+}
+
 /**
- * Standard HTTP Fetcher for real backend mode
+ * Standard HTTP fetcher. Adds the Bearer token, unwraps error envelopes, and
+ * clears the session + bounces to /login when the token is no longer valid.
  */
 export async function apiClient<T>(
   endpoint: string,
@@ -54,11 +49,19 @@ export async function apiClient<T>(
     });
 
     if (!res.ok) {
+      // Invalid/expired token: drop the session and return to login.
+      if (res.status === 401 && typeof window !== 'undefined' && !endpoint.startsWith('/auth/login')) {
+        clearSession();
+        if (window.location.pathname !== '/login') window.location.href = '/login';
+      }
       let errorMessage = 'Terjadi kesalahan pada server. Silakan coba lagi.';
       let details;
       try {
         const errorJson = await res.json();
-        errorMessage = errorJson.message || errorMessage;
+        // Nest's ValidationPipe returns message as a string[]; surface the first.
+        errorMessage = Array.isArray(errorJson.message)
+          ? errorJson.message[0]
+          : errorJson.message || errorMessage;
         details = errorJson.details;
       } catch {
         // use default

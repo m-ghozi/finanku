@@ -4,13 +4,21 @@
 
 ### Prasyarat
 - Node.js versi 18+ (atau Bun / NPM)
+- PostgreSQL (lokal atau Supabase) untuk backend
 
 ### Instalasi Dependensi
 ```bash
 npm install
 ```
 
-### Menjalankan Server Pengembangan
+### Menjalankan Backend (NestJS)
+```bash
+# Siapkan backend/.env (lihat backend/.env.example), lalu:
+npm run prisma:migrate -w backend   # buat/Update skema database
+npm run dev:api                     # API aktif di http://localhost:3001/api/v1
+```
+
+### Menjalankan Frontend
 ```bash
 npm run dev
 ```
@@ -19,25 +27,21 @@ Aplikasi akan aktif pada `http://localhost:3000`.
 ### Verifikasi Build
 ```bash
 npm run build
+npm run build:api
 ```
 
 ---
 
-## 2. Beralih Antara Mock API dan Backend Nyata
+## 2. Konfigurasi API
 
-Di dalam file `.env` (atau `.env.local`):
+Frontend selalu berbicara dengan backend NestJS. Atur URL API di `.env`:
 
-### Mode Mock (Stand-alone tanpa backend)
 ```env
-VITE_USE_MOCK_API=true
-VITE_API_URL=http://localhost:3001
+VITE_API_URL=http://localhost:3001/api/v1
 ```
 
-### Mode Backend (Terhubung ke NestJS)
-```env
-VITE_USE_MOCK_API=false
-VITE_API_URL=https://api.fintrack.app
-```
+> Catatan: `VITE_API_URL` harus menyertakan prefiks `/api/v1`. Tidak ada lagi
+> mode mock — seluruh data dibaca/ditulis ke database melalui API.
 
 ---
 

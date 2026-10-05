@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useCurrentUser, useLogout } from '@/src/hooks/useAuth';
+import { useCurrentUser, useLogout, useUpdateProfile } from '@/src/hooks/useAuth';
 import { useBalancePrivacy } from '@/src/lib/privacy';
 import { useRouter } from '@/src/lib/router';
 import { PageHeader } from '@/src/components/shared/PageHeader';
@@ -13,6 +13,7 @@ import { User, Bell, Shield, Sliders, Moon, Sun, Monitor, LogOut, Eye, EyeOff } 
 export const SettingsView: React.FC = () => {
   const { data: user } = useCurrentUser();
   const logoutMutation = useLogout();
+  const updateProfileMutation = useUpdateProfile();
   const { isHidden, toggle: togglePrivacy } = useBalancePrivacy();
   const { navigate } = useRouter();
 
@@ -37,9 +38,14 @@ export const SettingsView: React.FC = () => {
     }
   }, [user]);
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavedMessage('Profil berhasil diperbarui!');
+    try {
+      await updateProfileMutation.mutateAsync({ name, email });
+      setSavedMessage('Profil berhasil diperbarui!');
+    } catch (err) {
+      setSavedMessage(err instanceof Error ? err.message : 'Gagal memperbarui profil.');
+    }
     setTimeout(() => setSavedMessage(''), 3000);
   };
 
@@ -224,11 +230,11 @@ export const SettingsView: React.FC = () => {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between text-xs py-2 border-b border-zinc-100 dark:border-zinc-800">
             <span className="text-zinc-500">Tipe Autentikasi:</span>
-            <Badge variant="outline">Mock JWT Bearer Session</Badge>
+            <Badge variant="outline">JWT Bearer Session</Badge>
           </div>
           <div className="flex items-center justify-between text-xs py-2 border-b border-zinc-100 dark:border-zinc-800">
             <span className="text-zinc-500">Status Penyimpanan Data:</span>
-            <span className="font-semibold text-emerald-600">Local Browser Encrypted Storage</span>
+            <span className="font-semibold text-emerald-600">Server Fintrack (PostgreSQL)</span>
           </div>
 
           <div className="pt-2">

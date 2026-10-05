@@ -29,14 +29,13 @@ src/
 ├── types/              # Type definition TypeScript (domain models & DTOs)
 ├── lib/
 │   ├── api/            # Centralized API service layer
-│   │   ├── client.ts   # Axios/Fetch wrapper dengan switchable mock mode
+│   │   ├── client.ts   # Fetch wrapper: Bearer token, envelope unwrap, 401 handling
 │   │   ├── accounts.ts
 │   │   ├── transactions.ts
 │   │   └── ...
 │   ├── utils.ts        # formatCurrency, formatDate, formatNumber, cn()
 │   ├── privacy.ts      # Privacy toggle (Hide/Show balance)
 │   └── parser.ts       # Text input parser ("makan siang 35000")
-├── mocks/              # Mock data & mock in-memory mutation layer
 ├── hooks/              # Custom React hooks (TanStack Query mutations & queries)
 ├── components/
 │   ├── ui/             # Primitif UI (Button, Input, Modal, Badge, Card, dll.)
@@ -56,13 +55,23 @@ src/
 
 ---
 
-## 3. Strategi Transisi Mock API ke Backend
+## 3. Integrasi Backend
 
-Aplikasi dikontrol oleh Environment Variable:
-- `VITE_USE_MOCK_API=true` (Default untuk preview/pengembangan mandiri tanpa backend)
-- `VITE_API_URL=http://localhost:3001`
+Frontend tidak lagi memiliki lapisan mock. Seluruh data mengalir melalui:
 
-Ketika backend NestJS telah selesai dibangun:
-1. Ganti konfigurasi ke `VITE_USE_MOCK_API=false`.
-2. Seluruh hook TanStack Query (`useTransactions`, `useAccounts`, dll.) tetap identik karena menggunakan antarmuka service DTO yang sama.
-3. Tidak diperlukan penulisan ulang pada komponen UI.
+```
+View → Hook (TanStack Query) → Service (src/lib/api/*) → apiClient → NestJS /api/v1
+```
+
+Konfigurasi cukup satu variabel di `.env`:
+
+```env
+VITE_API_URL=http://localhost:3001/api/v1
+```
+
+- Autentikasi memakai Bearer JWT (`fintrack_token` di localStorage). Respons 401
+  otomatis menghapus sesi dan mengarahkan ulang ke `/login`.
+- Respons sukses mengikuti envelope `{ success, data }`; service layer membuka
+  `data` sehingga komponen UI tidak perlu tahu bentuk amplopnya.
+- Hook TanStack Query tetap identik dengan kontrak service DTO, jadi penambahan
+  endpoint baru hanya menyentuh service + backend, bukan komponen UI.

@@ -11,15 +11,15 @@ export class AccountsService {
       where: { userId, ...(includeArchived ? {} : { isArchived: false }) },
       orderBy: { createdAt: 'asc' },
     });
-    return Promise.all(
-      accounts.map(async (a) => ({ ...a, currentBalance: await this.computeBalance(a) })),
-    );
+    const balances = await this.balanceMap(userId, accounts);
+    return accounts.map((a) => ({ ...a, currentBalance: balances.get(a.id) ?? a.openingBalance }));
   }
 
   async findOne(userId: string, id: string) {
     const account = await this.prisma.account.findFirst({ where: { id, userId } });
     if (!account) throw new NotFoundException('Rekening tidak ditemukan');
-    return { ...account, currentBalance: await this.computeBalance(account) };
+    const balances = await this.balanceMap(userId, [account]);
+    return { ...account, currentBalance: balances.get(account.id) ?? account.openingBalance };
   }
 
   async create(userId: string, dto: CreateAccountDto) {
@@ -43,35 +43,46 @@ export class AccountsService {
     return { message: 'Rekening dihapus' };
   }
 
-  /** currentBalance = openingBalance + income - expense + transferIn - transferOut */
-  private async computeBalance(account: {
-    id: string;
-    openingBalance: number;
-  }): Promise<number> {
-    const [income, expense, transferIn, transferOut] = await Promise.all([
-      this.prisma.transaction.aggregate({
-        where: { accountId: account.id, type: 'income', status: 'completed' },
-        _sum: { amount: true },
-      }),
-      this.prisma.transaction.aggregate({
-        where: { accountId: account.id, type: 'expense', status: 'completed' },
-        _sum: { amount: true },
-      }),
-      this.prisma.transaction.aggregate({
-        where: { toAccountId: account.id, type: 'transfer', status: 'completed' },
-        _sum: { amount: true },
-      }),
-      this.prisma.transaction.aggregate({
-        where: { accountId: account.id, type: 'transfer', status: 'completed' },
-        _sum: { amount: true },
-      }),
-    ]);
-    return (
-      account.openingBalance +
-      (income._sum.amount ?? 0) -
-      (expense._sum.amount ?? 0) +
-      (transferIn._sum.amount ?? 0) -
-      (transferOut._sum.amount ?? 0)
-    );
+  /**
+   * currentBalance = openingBalance + income - expense + transferIn - transferOut
+   *
+   * Done as a single grouped query for all requested accounts (was 4 aggregates
+   * per account, which cost 4×N round trips on remote databases).
+   */
+  private async balanceMap(
+    userId: string,
+    accounts: { id: string; openingBalance: number }[],
+  ): Promise<Map<string, number>> {
+    const balances = new Map(accounts.map((a) => [a.id, a.openingBalance]));
+    if (accounts.length === 0) return balances;
+
+    const ids = accounts.map((a) => a.id);
+    const rows = await this.prisma.transaction.groupBy({
+      by: ['type', 'accountId', 'toAccountId'],
+      where: {
+        userId,
+        status: 'completed',
+        OR: [{ accountId: { in: ids } }, { toAccountId: { in: ids } }],
+      },
+      _sum: { amount: true },
+    });
+
+    const apply = (accountId: string | null, delta: number) => {
+      if (!accountId || !balances.has(accountId)) return;
+      balances.set(accountId, balances.get(accountId)! + delta);
+    };
+
+    for (const row of rows) {
+      const amount = row._sum.amount ?? 0;
+      if (row.type === 'income') {
+        apply(row.accountId, amount);
+      } else if (row.type === 'expense') {
+        apply(row.accountId, -amount);
+      } else if (row.type === 'transfer') {
+        apply(row.accountId, -amount);
+        apply(row.toAccountId, amount);
+      }
+    }
+    return balances;
   }
 }
